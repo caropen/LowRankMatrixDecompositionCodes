@@ -3,6 +3,8 @@
 
 #include "matrix_vector_functions_mkl_and_cublas.h"
 
+cublasHandle_t handle;
+
 
 
 /* initialize new matrix and set all entries to zero */
@@ -1612,5 +1614,4 @@ double get_seconds_frac(struct timeval start_timeval, struct timeval end_timeval
     micros_used= ((secs_used*1000000) + end_timeval.tv_usec) - (start_timeval.tv_usec);
     return (micros_used/1e6); 
 }
-
 

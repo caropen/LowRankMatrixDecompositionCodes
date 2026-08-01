@@ -21,7 +21,7 @@
 #define min(x,y) (((x) < (y)) ? (x) : (y))
 #define max(x,y) (((x) > (y)) ? (x) : (y))
 
-cublasHandle_t handle;
+extern cublasHandle_t handle;
 
 typedef struct {
     int nrows, ncols;
@@ -347,6 +347,10 @@ M is mxn ; Q is mxn ; R is not computed */
 void QR_factorization_getQ(mat *M, mat *Q);
 
 
+/* computes SVD: M = U*S*Vt; note Vt = V^T */
+void singular_value_decomposition(mat *M, mat *U, mat *S, mat *Vt);
+
+
 /* for autorank 1 */
 void estimate_rank_and_buildQ(mat *M, double frac_of_max_rank, double TOL, mat **Q, int *good_rank);
 
@@ -367,4 +371,3 @@ void square_matrix_system_solve(mat *A, mat *X, mat *B);
 
 /* get seconds for recording runtime */
 double get_seconds_frac(struct timeval start_timeval, struct timeval end_timeval);
-
