@@ -104,7 +104,7 @@ int main(int argc, char **argv)
     int m, n, min_mn, kstep, nstep, q, s;
     int frank, argi, tolerance_supplied, kstep_supplied;
     uintmax_t nentries;
-    double TOL, start_time, end_time;
+    double TOL, start_time, end_time, gpu_time;
     mat *A, *Q, *B;
     cublasStatus_t cublas_status;
 
@@ -241,7 +241,8 @@ int main(int argc, char **argv)
     start_time = omp_get_wtime();
     randQB_pb_new(A, kstep, nstep, TOL, q, s, &frank, &Q, &B);
     end_time = omp_get_wtime();
-    printf("qb_rangefinder_seconds %11.6f\n", end_time - start_time);
+    gpu_time = end_time - start_time;
+    printf("qb_rangefinder_seconds %11.6f\n", gpu_time);
     printf("output frank = %d\n", frank);
     printf("norm(Q) = %f, norm(B) = %f\n", get_matrix_frobenius_norm(Q), get_matrix_frobenius_norm(B));
     use_QB_decomp_for_approximation(A, Q, B);
@@ -257,6 +258,10 @@ int main(int argc, char **argv)
         fprintf(stderr, "Error: cublasDestroy failed with status %d.\n", (int)cublas_status);
         return EXIT_FAILURE;
     }
+
+    printf("RANDQB_RESULT,%lld,%lld,%lld,%.9e,%d,%lld,%.6f,%s\n",
+           (long long)m, (long long)n, (long long)kstep,
+           TOL, nstep, (long long)frank, gpu_time, "ok");
 
     return EXIT_SUCCESS;
 }

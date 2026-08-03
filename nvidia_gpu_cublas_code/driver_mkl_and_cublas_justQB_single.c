@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     int frank, argi, tolerance_supplied, kstep_supplied;
     uintmax_t nentries;
     float tolerance = 0.0f;
-    double start_time, end_time;
+    double start_time, end_time, gpu_time;
     smat *matrix, *q_factor, *b_factor;
     cublasStatus_t cublas_status;
 
@@ -244,7 +244,8 @@ int main(int argc, char **argv)
     randQB_pb_new_single(matrix, kstep, nstep, tolerance, q, s,
                          &frank, &q_factor, &b_factor);
     end_time = omp_get_wtime();
-    printf("qb_rangefinder_seconds %11.6f\n", end_time - start_time);
+    gpu_time = end_time - start_time;
+    printf("qb_rangefinder_seconds %11.6f\n", gpu_time);
     printf("output frank = %d\n", frank);
     printf("norm(Q) = %f, norm(B) = %f\n",
            sget_matrix_frobenius_norm(q_factor),
@@ -262,5 +263,10 @@ int main(int argc, char **argv)
         fprintf(stderr, "Error: cublasDestroy failed with status %d.\n", (int)cublas_status);
         return EXIT_FAILURE;
     }
+
+    printf("RANDQB_RESULT,%lld,%lld,%lld,%.9e,%d,%lld,%.6f,%s\n",
+           (long long)m, (long long)n, (long long)kstep,
+           (double)tolerance, nstep, (long long)frank, gpu_time, "ok");
+
     return EXIT_SUCCESS;
 }

@@ -106,7 +106,7 @@ int main(int argc, char **argv)
     myint64 frank, numnnz;
     float TOL;
     mat *A, *Q, *B;
-    double start_time, end_time;
+    double start_time, end_time, cpu_time;
     int argi, tolerance_supplied, kstep_supplied;
 
     if (argc < 3) {
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
     start_time = omp_get_wtime();
     A = generate_svd_defined_matrix(m, n);
     end_time = omp_get_wtime();
-    printf("matrix generation elapsed time: about %4.2f seconds\n", end_time - start_time);
+    printf("matrix_generation_seconds %11.6f\n", end_time - start_time);
 
     q = 1; // power scheme power
     s = 2; // power scheme orthogonalization amount
@@ -235,7 +235,8 @@ int main(int argc, char **argv)
     start_time = omp_get_wtime();
     randQB_pb2(A, kstep, nstep, TOL, q, s, &frank, &Q, &B);
     end_time = omp_get_wtime();
-    printf("QB rangefinder elapsed time: about %4.2f seconds\n", end_time - start_time);
+    cpu_time = end_time - start_time;
+    printf("qb_rangefinder_seconds %11.6f\n", cpu_time);
     printf("output frank = %" PRId64 "\n", frank);
     printf("norm(Q) = %f, norm(B) = %f\n", get_matrix_frobenius_norm(Q), get_matrix_frobenius_norm(B));
     use_QB_decomp_for_approximation(A, Q, B);
@@ -244,6 +245,10 @@ int main(int argc, char **argv)
     matrix_delete(A);
     matrix_delete(Q);
     matrix_delete(B);
+
+    printf("RANDQB_RESULT,%lld,%lld,%lld,%.9e,%d,%lld,%.6f,%s\n",
+           (long long)m, (long long)n, (long long)kstep,
+           (double)TOL, (int)nstep, (long long)frank, cpu_time, "ok");
 
     return EXIT_SUCCESS;
 }
