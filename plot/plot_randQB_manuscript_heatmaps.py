@@ -11,12 +11,12 @@ import sys
 
 MATRIX_SIZES = [1024, 2048, 4096]
 BLOCK_SIZES = [64, 128, 256]
-IMPLEMENTATIONS = ("randqb_oneapi", "randqb_cublas")
+IMPLEMENTATIONS = ("randqb_lapack", "randqb_cublas")
+RESULT_FILE_ALIASES = {"randqb_lapack": "randqb_oneapi"}
 REQUIRED_COLUMNS = {
     "matrix_size",
     "block_size",
     "lr_tol",
-    "mkl_threads",
     "omp_threads",
     "warmup_seconds",
     "sample_1_seconds",
@@ -28,10 +28,11 @@ REQUIRED_COLUMNS = {
     "rank",
     "status",
 }
+BLAS_THREAD_COLUMNS = {"openblas_threads", "mkl_threads"}
 
 
 PANEL_TITLES = {
-    "randqb_oneapi": "(a) oneAPI (CPU)",
+    "randqb_lapack": "(a) LAPACK/CBLAS (CPU)",
     "randqb_cublas": "(b) cuBLAS (GPU)",
 }
 OUTPUT_NAME = "randqb_runtime_heatmaps.pdf"
@@ -90,6 +91,10 @@ def load_grid(csv_file: Path, pd, np):
         raise ValueError(
             f"{csv_file.name} is missing columns: {', '.join(missing_columns)}"
         )
+    if not BLAS_THREAD_COLUMNS.intersection(data.columns):
+        raise ValueError(
+            f"{csv_file.name} is missing a BLAS thread-count column"
+        )
 
     data["matrix_size"] = pd.to_numeric(
         data["matrix_size"], errors="coerce"
@@ -124,6 +129,14 @@ def load_grid(csv_file: Path, pd, np):
     return data.pivot(
         index="matrix_size", columns="block_size", values="median_seconds"
     ).reindex(index=MATRIX_SIZES, columns=BLOCK_SIZES)
+
+
+def result_file(results_directory: Path, implementation: str) -> Path:
+    csv_file = results_directory / f"{implementation}.csv"
+    alias = RESULT_FILE_ALIASES.get(implementation)
+    if not csv_file.is_file() and alias is not None:
+        return results_directory / f"{alias}.csv"
+    return csv_file
 
 
 def annotation_color(value: float, norm, color_map) -> str:
@@ -254,7 +267,7 @@ def main() -> int:
     try:
         grids = {
             implementation: load_grid(
-                results_directory / f"{implementation}.csv", pd, np
+                result_file(results_directory, implementation), pd, np
             )
             for implementation in IMPLEMENTATIONS
         }

@@ -82,8 +82,8 @@ Thumbs.db
 /multi_core_mkl_code_64bit/driver1
 /nvidia_gpu_cublas_code/driver_mkl_and_cublas1
 /nvidia_gpu_cublas_code/driver_mkl_and_cublas_justQB
-/nvidia_gpu_cublas_code/driver_mkl_and_cublas_justQB_single
+/nvidia_gpu_cublas_code/driver_lapack_and_cublas_justQB_single
 /nvidia_gpu_cula_code/driver_gpu_nvidia_cula
 /nvidia_gpu_cula_code/driver_gpu_nvidia_cula[1-9]
 /nvidia_gpu_cula_code/device_code/rsvd_code_cula_device
-/oneapi_code/rund*
+/lapack_code/rund*

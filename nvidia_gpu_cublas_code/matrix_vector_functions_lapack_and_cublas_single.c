@@ -1,19 +1,13 @@
-#include "matrix_vector_functions_mkl_and_cublas_single.h"
+#include "matrix_vector_functions_lapack_and_cublas_single.h"
 
-#include <cuda_runtime.h>
 #include <limits.h>
 #include <math.h>
-#include <mkl_lapacke.h>
-#include <mkl_vsl.h>
 #include <omp.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-
-#define SINGLE_BRNG VSL_BRNG_MCG31
-#define SINGLE_METHOD VSL_RNG_METHOD_GAUSSIAN_ICDF
 
 cublasHandle_t handle_single;
+static lapack_int random_seed_single[4] = { 1, 2, 3, 5 };
 
 static size_t smatrix_element_count(const smat *matrix)
 {
@@ -109,16 +103,15 @@ void sinitialize_random_matrix(smat *matrix)
 {
     size_t offset = 0;
     size_t count = smatrix_element_count(matrix);
-    VSLStreamStatePtr stream;
 
-    vslNewStream(&stream, SINGLE_BRNG, (MKL_INT)time(NULL));
     while (offset < count) {
         size_t remaining = count - offset;
-        MKL_INT chunk = remaining > (size_t)INT_MAX ? INT_MAX : (MKL_INT)remaining;
-        vsRngGaussian(SINGLE_METHOD, stream, chunk, matrix->d + offset, 0.0f, 1.0f);
+        lapack_int chunk = remaining > (size_t)INT_MAX
+                         ? (lapack_int)INT_MAX
+                         : (lapack_int)remaining;
+        LAPACKE_slarnv(3, random_seed_single, chunk, matrix->d + offset);
         offset += (size_t)chunk;
     }
-    vslDeleteStream(&stream);
 }
 
 void smatrix_matrix_mult(smat *left, smat *right, smat *product)

@@ -1,7 +1,9 @@
-/* matrix decomposition algorithms using oneAPI functionality */
+/* Matrix decomposition algorithms using CBLAS and LAPACKE. */
 /* Sergey Voronin */
 
-#include "rank_revealing_algorithms_one_api.h"
+#include "rank_revealing_algorithms_lapack.h"
+
+#include <stdlib.h>
 
 /* computes the low rank SVD of rank k or tolerance TOL of matrix M  */
 void low_rank_svd_decomp_fixed_rank_or_prec(mat *M, myint64 k, float TOL, myint64 *frank, mat **U, mat **S, mat **V){
@@ -386,7 +388,7 @@ void id_rand_decomp_fixed_rank(mat *M, myint64 k, myint64 p, myint64 q, myint64 
         Rk1 = Rk(:,1:k);
         Rk2 = Rk(:,(k+1):end);
     */
-    pivotedQR_mkl(Y, &Qd, &Rd, I);
+    pivotedQR_lapack(Y, &Qd, &Rd, I);
     
     Qk = matrix_new(Qd->nrows,k);   
     Rk = matrix_new(k,Rd->ncols);   
@@ -425,7 +427,7 @@ void id_rand_decomp_fromQB(mat *Q, mat *B, vec **I, mat **T){
     m = B->nrows; 
     n = B->ncols;
 	k = Q->ncols;
-    pivotedQR_mkl(B, &Q, &Rk, I);
+    pivotedQR_lapack(B, &Q, &Rk, I);
 
     Rk1 = matrix_new(k,k);
     Rk2 = matrix_new(k,n-k);
@@ -817,7 +819,7 @@ void randQB_pb2(mat *M, myint64 kstep, myint64 nstep, float TOL, myint64 q, myin
 /* column pivoted QR for mxn A 
 input: matrix M
 outputs: matrices Q and R and vector I such that A(:,I) = QR */
-void pivotedQR_mkl(mat *M, mat **Q, mat **R, vec **I){
+void pivotedQR_lapack(mat *M, mat **Q, mat **R, vec **I){
     myint64 i,j,k,m,n,Rrows,Rcols,Qrows,Qcols;
     mat *Mwork;
     vec *col_vec;
@@ -1022,4 +1024,3 @@ void use_id_decomp_for_approximation(mat *M, mat *T, vec *I, myint64 k){
     matrix_delete(MI); matrix_delete(MA); matrix_delete(Tt);
     vector_delete(Iinv);
 }
-

@@ -1,7 +1,24 @@
+#ifndef MATRIX_VECTOR_FUNCTIONS_LAPACK_H
+#define MATRIX_VECTOR_FUNCTIONS_LAPACK_H
+
 #include <stdio.h>
-#include "mkl.h"
-#include "mkl_lapacke.h"
-#include "mkl_vsl.h"
+#ifdef USE_MKL
+#include <mkl_cblas.h>
+#include <mkl_lapacke.h>
+#elif defined(USE_NVPL)
+#include <nvpl_blas_cblas.h>
+#include <nvpl_lapacke.h>
+#else
+#include <cblas.h>
+#include <lapacke.h>
+#endif
+
+/* Some CBLAS headers include <complex.h>, whose I macro conflicts with
+   the index-vector name used throughout this C code. */
+#ifdef I
+#undef I
+#endif
+
 #include <stdint.h>
 #include <math.h>
 #include <inttypes.h>
@@ -10,13 +27,8 @@
 #include <sys/time.h> // for clock_gettime()
 
 
-#define SEED    777
-#define BRNG    VSL_BRNG_MCG31
-#define METHOD  VSL_RNG_METHOD_GAUSSIAN_ICDF
-
 #define min(x,y) (((x) < (y)) ? (x) : (y))
 #define max(x,y) (((x) > (y)) ? (x) : (y))
-// typedef MKL_INT64 myint64;
 typedef int64_t myint64;
 
 
@@ -315,6 +327,8 @@ void vector_build_rewrapped(vec *Iinv, vec *I);
 
 /* calculate percent error between A and B: 100*norm(A - B)/norm(A) */
 float get_percent_error_between_two_mats(mat *A, mat *B);
+
+#endif
 
 
 float get_matrix_column_norm_squared(mat *M, myint64 colnum);

@@ -5,7 +5,7 @@
 #define min(x,y) (((x) < (y)) ? (x) : (y))
 #define max(x,y) (((x) > (y)) ? (x) : (y))
 
-#include "rank_revealing_algorithms_one_api.h"
+#include "rank_revealing_algorithms_lapack.h"
 #include <stdint.h>
 #include <inttypes.h>
 
@@ -100,4 +100,3 @@ int main()
 
     return 0;
 }
-

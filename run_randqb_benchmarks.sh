@@ -11,8 +11,8 @@ readonly ITERATIONS=6
 readonly -a MATRIX_SIZES=(1024 2048 4096)
 readonly -a BLOCK_SIZES=(64 128 256)
 readonly -a IMPLEMENTATIONS=(
-    'randqb_oneapi|oneapi_code/rund3_justQB'
-    'randqb_cublas|nvidia_gpu_cublas_code/driver_mkl_and_cublas_justQB_single'
+    'randqb_lapack|lapack_code/rund3_justQB'
+    'randqb_cublas|nvidia_gpu_cublas_code/driver_lapack_and_cublas_justQB_single'
 )
 
 CURRENT_OUTPUT=""
@@ -87,7 +87,7 @@ median_of_five()
 write_header()
 {
     printf '%s\n' \
-        'matrix_size,block_size,lr_tol,mkl_threads,omp_threads,warmup_seconds,sample_1_seconds,sample_2_seconds,sample_3_seconds,sample_4_seconds,sample_5_seconds,median_seconds,rank,status' \
+        'matrix_size,block_size,lr_tol,openblas_threads,omp_threads,warmup_seconds,sample_1_seconds,sample_2_seconds,sample_3_seconds,sample_4_seconds,sample_5_seconds,median_seconds,rank,status' \
         >"$1"
 }
 
@@ -108,7 +108,7 @@ write_failure_row()
 
     write_row "${csv_file}" \
         "${matrix_size}" "${block_size}" "${LR_TOL}" \
-        "${MKL_NUM_THREADS}" "${OMP_NUM_THREADS}" \
+        "${OPENBLAS_NUM_THREADS}" "${OMP_NUM_THREADS}" \
         "" "" "" "" "" "" "" "" "${failure_status}"
 }
 
@@ -156,7 +156,7 @@ run_configuration()
     median="$(median_of_five "${PARSED_TIMES[@]:1}")"
     write_row "${csv_file}" \
         "${matrix_size}" "${block_size}" "${LR_TOL}" \
-        "${MKL_NUM_THREADS}" "${OMP_NUM_THREADS}" \
+        "${OPENBLAS_NUM_THREADS}" "${OMP_NUM_THREADS}" \
         "${PARSED_TIMES[0]}" "${PARSED_TIMES[1]}" \
         "${PARSED_TIMES[2]}" "${PARSED_TIMES[3]}" \
         "${PARSED_TIMES[4]}" "${PARSED_TIMES[5]}" \
@@ -176,8 +176,8 @@ main()
         printf 'This benchmark script does not accept arguments.\n' >&2
         return 2
     fi
-    if [[ -z "${MKL_NUM_THREADS:-}" || -z "${OMP_NUM_THREADS:-}" ]]; then
-        printf 'MKL_NUM_THREADS and OMP_NUM_THREADS must be set.\n' >&2
+    if [[ -z "${OPENBLAS_NUM_THREADS:-}" || -z "${OMP_NUM_THREADS:-}" ]]; then
+        printf 'OPENBLAS_NUM_THREADS and OMP_NUM_THREADS must be set.\n' >&2
         return 1
     fi
 

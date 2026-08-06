@@ -1,12 +1,17 @@
-/* high level matrix/vector functions using Intel oneAPI MKL for blas/lapack */
+/* High-level matrix/vector functions using CBLAS and LAPACKE. */
 /* Sergey Voronin */
-#include "matrix_vector_functions_one_api.h"
+#include "matrix_vector_functions_lapack.h"
+
+#include <limits.h>
+#include <stdlib.h>
+
+static lapack_int random_seed[4] = { 1, 2, 3, 5 };
 
 /* initialize new matrix and set all entries to zero */
 mat * matrix_new(myint64 nrows, myint64 ncols)
 {
     mat *M = malloc(sizeof(mat));
-    M->d = (float*)mkl_calloc(nrows*ncols, sizeof(float), 64);
+    M->d = (float*)calloc((size_t)nrows*(size_t)ncols, sizeof(float));
     M->nrows = nrows;
     M->ncols = ncols;
     return M;
@@ -17,7 +22,7 @@ mat * matrix_new(myint64 nrows, myint64 ncols)
 vec * vector_new(myint64 nrows)
 {
     vec *v = malloc(sizeof(vec));
-    v->d = (float*)mkl_calloc(nrows,sizeof(float), 64);
+    v->d = (float*)calloc((size_t)nrows, sizeof(float));
     v->nrows = nrows;
     return v;
 }
@@ -25,14 +30,14 @@ vec * vector_new(myint64 nrows)
 
 void matrix_delete(mat *M)
 {
-    mkl_free(M->d);
+    free(M->d);
     free(M);
 }
 
 
 void vector_delete(vec *v)
 {
-    mkl_free(v->d);
+    free(v->d);
     free(v);
 }
 
@@ -452,43 +457,17 @@ void compute_matrix_column_norms(mat *M, vec *column_norms){
 
 /* initialize a random matrix */
 void initialize_random_matrix(mat *M){
-    myint64 i,ig,j,m,n,N,nb;
-    float val;
-    float a=0.0,sigma=1.0;
-    m = M->nrows;
-    n = M->ncols;
-    N = m*n;
-    float *r;
-    VSLStreamStatePtr stream;
-   
-    vslNewStream( &stream, BRNG,  time(NULL) );
-    if(N < 1e8){
-        r = (float*)mkl_calloc(N,sizeof(float),64);
-        vsRngGaussian( METHOD, stream, N, r, a, sigma );
-        #pragma omp parallel for shared(M,r) private(i) 
-        for(i=0; i<N; i++){
-            M->d[i] = r[i];
-        }
-    }
-    else{ // generate random numbers in chunks for large sizes
-        nb = N/1e8 + 1;  
-        ig = 0;
-        r = (float*)mkl_calloc(1e8,sizeof(float),64);
-        for(j=0; j<nb; j++){
-            vsRngGaussian( METHOD, stream, 1e8, r, a, sigma );
-            #pragma omp parallel for shared(M,r,ig) private(i) 
-            for(i=0; i<1e8; i++){
-                if(ig >= N){ break; } else if (ig < N){
-                    M->d[ig] = r[i]; 
-                    #pragma omp atomic update
-                    ig++;
-                }
-            } 
-        }
-        //printf("on rand func exit: N = %ld, nb = %ld, ig = %ld, \n", N, nb, ig);
-    }
+    size_t offset = 0;
+    size_t count = (size_t)M->nrows*(size_t)M->ncols;
 
-    mkl_free(r); r = NULL;
+    while(offset < count){
+        size_t remaining = count - offset;
+        lapack_int chunk = remaining > (size_t)INT_MAX
+                         ? (lapack_int)INT_MAX
+                         : (lapack_int)remaining;
+        LAPACKE_slarnv(3, random_seed, chunk, M->d + offset);
+        offset += (size_t)chunk;
+    }
 }
 
 
@@ -536,7 +515,7 @@ void invert_diagonal_matrix(mat *Dinv, mat *D){
 
 /* overwrites supplied upper triangular matrix by its inverse */
 void invert_upper_triangular_matrix(mat *Minv){
-    LAPACKE_dtrtri( LAPACK_COL_MAJOR, 'U', 'N', Minv->nrows, (double*)Minv->d, Minv->nrows);
+    LAPACKE_strtri(LAPACK_COL_MAJOR, 'U', 'N', Minv->nrows, Minv->d, Minv->nrows);
 }
 
 
@@ -1511,4 +1490,3 @@ void square_matrix_system_solve(mat *A, mat *X, mat *B){
 float get_seconds_frac(float start, float end){
     return (float)((end - start)); 
 }
-

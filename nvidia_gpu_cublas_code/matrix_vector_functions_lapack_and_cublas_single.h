@@ -1,7 +1,23 @@
-#ifndef MATRIX_VECTOR_FUNCTIONS_MKL_AND_CUBLAS_SINGLE_H
-#define MATRIX_VECTOR_FUNCTIONS_MKL_AND_CUBLAS_SINGLE_H
+#ifndef MATRIX_VECTOR_FUNCTIONS_LAPACK_AND_CUBLAS_SINGLE_H
+#define MATRIX_VECTOR_FUNCTIONS_LAPACK_AND_CUBLAS_SINGLE_H
 
+#include <cuda_runtime.h>
 #include <cublas_v2.h>
+
+#ifdef USE_MKL
+#include <mkl_cblas.h>
+#include <mkl_lapacke.h>
+#elif defined(USE_NVPL)
+#include <nvpl_blas_cblas.h>
+#include <nvpl_lapacke.h>
+#else
+#include <cblas.h>
+#include <lapacke.h>
+#endif
+
+#ifdef I
+#undef I
+#endif
 
 extern cublasHandle_t handle_single;
 

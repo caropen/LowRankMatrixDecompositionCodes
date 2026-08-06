@@ -1,4 +1,4 @@
-#include "rank_revealing_algorithms_mkl_and_cublas_single.h"
+#include "rank_revealing_algorithms_lapack_and_cublas_single.h"
 
 #include <stdio.h>
 #include <stdlib.h>
