@@ -77,13 +77,5 @@ Thumbs.db
 .cache/
 
 # Extensionless executables produced by repository build scripts
-/single_core_gsl_code/driver_single_core_gsl
-/multi_core_mkl_code/driver_multi_core_mkl[1-9]
-/multi_core_mkl_code_64bit/driver1
-/nvidia_gpu_cublas_code/driver_mkl_and_cublas1
-/nvidia_gpu_cublas_code/driver_mkl_and_cublas_justQB
 /nvidia_gpu_cublas_code/driver_lapack_and_cublas_justQB_single
-/nvidia_gpu_cula_code/driver_gpu_nvidia_cula
-/nvidia_gpu_cula_code/driver_gpu_nvidia_cula[1-9]
-/nvidia_gpu_cula_code/device_code/rsvd_code_cula_device
 /lapack_code/rund*
